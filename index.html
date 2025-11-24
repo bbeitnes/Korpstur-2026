@@ -11,6 +11,8 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <!-- Last inn Babel for å tolke JSX i nettleseren (kun for enkel deployment) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- NYTT: Last inn Lucide ikoner (Dette manglet og forårsaket krasjen) -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <!-- Konfigurer Tailwind til å bruke Inter-fonten og egendefinerte farger -->
     <script>
       tailwind.config = {
@@ -271,15 +273,3 @@
               </div>
 
             </div>
-          </div>
-        );
-      }
-
-      // Render appen til HTML-siden
-      const container = document.getElementById('root');
-      const root = ReactDOM.createRoot(container);
-      root.render(<App />);
-
-    </script>
-</body>
-</html>
