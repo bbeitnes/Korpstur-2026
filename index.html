@@ -6,9 +6,9 @@
     <title>Korpstur Infoapp</title>
     <!-- Last inn Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Last inn React og ReactDOM fra CDN -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Last inn React og ReactDOM fra CDN (ENDRET TIL DEVELOPMENT-VERSJONER FOR BEDRE KOMPATIBILITET MED BABEL STANDALONE) -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <!-- Last inn Babel for å tolke JSX i nettleseren (kun for enkel deployment) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <!-- NYTT: Last inn Lucide ikoner (Dette manglet og forårsaket krasjen) -->
@@ -273,3 +273,15 @@
               </div>
 
             </div>
+          </div>
+        );
+      }
+
+      // Render appen til HTML-siden
+      const container = document.getElementById('root');
+      const root = ReactDOM.createRoot(container);
+      root.render(<App />);
+
+    </script>
+</body>
+</html>
