@@ -96,7 +96,7 @@
       // --- KONFIGURASJON ---
 
       // Lim inn din publiserte CSV-lenke fra Google Sheets her
-      const GOOGLE_SHEET_CSV_URL = ''; 
+      const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTEiz6lnSo33ak5q90gZflUaxzef9_B_cF5dkXkqQoafpuy4Cyd6aaBaX8bfvKiuRVGY08usZeOV3II/pub?output=csv'; 
 
       // --- RESERVE-DATA (Brukes hvis Google Sheet ikke er koblet til ennå) ---
       const INITIAL_DATA = [
@@ -288,78 +288,4 @@
               
               {error && (
                 <div className="bg-red-50 text-red-800 p-3 rounded-xl mb-4 text-sm flex items-center gap-2 border border-red-100">
-                  <IconSvg name="alert-circle" className="w-4 h-4" />
-                  {error}
-                </div>
-              )}
-
-              {/* Søkefelt */}
-              <div className="bg-white p-2 rounded-2xl shadow-lg border border-gray-100 flex items-center mb-6">
-                <IconSvg name="search" className="text-gray-400 ml-3 w-5 h-5" />
-                <input 
-                  type="text"
-                  placeholder="Søk etter buss, uniform, mat..."
-                  className="w-full p-3 outline-none text-gray-700 placeholder-gray-400 bg-transparent"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-
-              {/* Kategori-knapper */}
-              <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide mb-2">
-                {categories.map((cat, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-                      selectedCategory === cat 
-                        ? 'bg-indigo-600 text-white shadow-md' 
-                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-                    }`}
-                  >
-                    {cat || 'Annet'}
-                  </button>
-                ))}
-              </div>
-
-              {/* Resultatliste */}
-              <div className="space-y-1">
-                {filteredData.length > 0 ? (
-                  filteredData.map(item => (
-                    <InfoCard key={item.id} item={item} />
-                  ))
-                ) : (
-                  <div className="text-center py-10 text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
-                    <p>Fant ingen svar på det...</p>
-                    <p className="text-xs mt-1">Prøv et annet søkeord eller velg 'Alle'.</p>
-                  </div>
-                )}
-              </div>
-              
-              {/* Footer info */}
-              <div className="text-center mt-10 text-gray-400 text-xs">
-                <p>© Skolekorpset</p>
-                <p>Trenger du akutt hjelp? Se "Kontakt"-fanen.</p>
-              </div>
-
-            </div>
-          </div>
-        );
-      }
-
-      // Render appen til HTML-siden
-      // VIKTIG: Pakk renderingen inn i window.onload for å sikre at alle CDN-ressurser (Lucide, React, Babel)
-      // er ferdig lastet før koden prøver å bruke dem.
-      window.onload = function() {
-          const container = document.getElementById('root');
-          if (container) {
-              const root = ReactDOM.createRoot(container);
-              root.render(<App />);
-          } else {
-              console.error("Root element '#root' not found.");
-          }
-      };
-
-    </script>
-</body>
-</html>
+                  <IconSvg name="alert-circle"
