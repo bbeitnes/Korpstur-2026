@@ -6,13 +6,16 @@
     <title>Korpstur Infoapp</title>
     <!-- Last inn Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Last inn React og ReactDOM fra CDN (ENDRET TIL DEVELOPMENT-VERSJONER FOR BEDRE KOMPATIBILITET MED BABEL STANDALONE) -->
+    <!-- Last inn React og ReactDOM fra CDN -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <!-- Last inn Babel for å tolke JSX i nettleseren (kun for enkel deployment) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- NYTT: Last inn Lucide ikoner (Dette manglet og forårsaket krasjen) -->
+    
+    <!-- FIX: Byttet fra lucide-react UMD (som feilet med forwardRef) til det rene lucide-biblioteket.
+        Dette gir tilgang til ikon-dataene via den globale variabelen 'lucide'. -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
     <!-- Konfigurer Tailwind til å bruke Inter-fonten og egendefinerte farger -->
     <script>
       tailwind.config = {
@@ -49,13 +52,51 @@
     <div id="root"></div>
 
     <script type="text/babel">
-      // Bruk av Lucide-ikoner (må defineres manuelt siden vi bruker CDN)
-      const { Search, Music, Bus, MapPin, Phone, Shirt, Info, ChevronDown, ChevronUp, Calendar, AlertCircle, Plane } = lucide;
+      
+      // --- HJELPEKOMPONENT FOR Å RENDRE LUCIDE IKONER FRA RAW DATA ---
+      // Denne komponenten henter SVG-banene fra den globale 'lucide' variabelen og tegner ikonet.
+      const IconSvg = ({ name, className }) => {
+        // Sikrer at lucide er definert globalt (fra CDN-filen)
+        if (typeof lucide === 'undefined' || !lucide.icons) {
+            console.error("Lucide icons library is not loaded.");
+            return null; 
+        }
 
+        // Konverterer navnet til PascalCase for oppslag (f.eks. 'bus' blir 'Bus')
+        const iconName = name.charAt(0).toUpperCase() + name.slice(1);
+        const iconData = lucide.icons[iconName];
+
+        if (!iconData) {
+            console.warn(`Icon data not found for: ${iconName}`);
+            return null;
+        }
+
+        // De siste elementene i ikondata-arrayet er vanligvis ikonnavn og attributter, vi trenger bare stiene.
+        const pathData = iconData.slice(0, iconData.length - 2);
+
+        return (
+          <svg 
+            className={className} 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+          >
+            {pathData.map((attrs, index) => {
+                // attrs[1] inneholder de faktiske SVG-attributtene
+                return <path key={index} {...attrs[1]} />;
+            })}
+          </svg>
+        );
+      };
+      // --- SLUTT PÅ IKON HJELPEKOMPONENT ---
+      
       // --- KONFIGURASJON ---
 
       // Lim inn din publiserte CSV-lenke fra Google Sheets her
-      const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTEiz6lnSo33ak5q90gZflUaxzef9_B_cF5dkXkqQoafpuy4Cyd6aaBaX8bfvKiuRVGY08usZeOV3II/pub?output=csv'; 
+      const GOOGLE_SHEET_CSV_URL = ''; 
 
       // --- RESERVE-DATA (Brukes hvis Google Sheet ikke er koblet til ennå) ---
       const INITIAL_DATA = [
@@ -72,12 +113,28 @@
           question: 'Hvordan legger jeg inn min egen info?',
           answer: 'Følg instruksjonene for Google Sheets og lim inn CSV-lenken i koden.',
           keywords: 'hjelp info'
+        },
+        {
+          id: 3,
+          category: 'Program',
+          question: 'Hvor skal vi spille konsert?',
+          answer: 'Vi skal spille på bytorget klokken 14:00. Møt opp i full uniform.',
+          keywords: 'konsert program'
+        },
+        {
+          id: 4,
+          category: 'Kontakt',
+          question: 'Hvem skal jeg ringe ved akutt krise?',
+          answer: 'Ring reiseleder, tlf: 123 45 678. Ved medisinske nødsituasjoner, ring det lokale nødnummeret 112.',
+          keywords: 'krise nødnummer'
         }
       ];
 
       // --- HJELPEFUNKSJON FOR Å LESE CSV (Komma-separert fil) ---
       const parseCSV = (text) => {
         const rows = text.split('\n').map(row => row.trim()).filter(row => row.length > 0);
+        if (rows.length < 2) return []; // Ingen data utover header
+
         const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
         
         return rows.slice(1).map((row, index) => {
@@ -111,13 +168,17 @@
 
         const getIcon = (cat) => {
           const c = cat?.toLowerCase() || '';
-          if (c.includes('reise') || c.includes('buss')) return <Bus className="w-5 h-5 text-blue-500" />;
-          if (c.includes('fly')) return <Plane className="w-5 h-5 text-sky-500" />;
-          if (c.includes('overnatting') || c.includes('hotell')) return <MapPin className="w-5 h-5 text-red-500" />;
-          if (c.includes('pakke') || c.includes('uniform')) return <Shirt className="w-5 h-5 text-purple-500" />;
-          if (c.includes('kontakt') || c.includes('nød')) return <Phone className="w-5 h-5 text-green-500" />;
-          if (c.includes('program') || c.includes('spille')) return <Calendar className="w-5 h-5 text-orange-500" />;
-          return <Info className="w-5 h-5 text-gray-500" />;
+          // Bruker IconSvg med strengnavn
+          const baseClass = "w-5 h-5";
+
+          if (c.includes('reise') || c.includes('buss')) return <IconSvg name="bus" className={`${baseClass} text-blue-500`} />;
+          if (c.includes('fly')) return <IconSvg name="plane" className={`${baseClass} text-sky-500`} />;
+          if (c.includes('overnatting') || c.includes('hotell')) return <IconSvg name="map-pin" className={`${baseClass} text-red-500`} />;
+          if (c.includes('pakke') || c.includes('uniform')) return <IconSvg name="shirt" className={`${baseClass} text-purple-500`} />;
+          if (c.includes('kontakt') || c.includes('nød')) return <IconSvg name="phone" className={`${baseClass} text-green-500`} />;
+          if (c.includes('program') || c.includes('spille')) return <IconSvg name="calendar" className={`${baseClass} text-orange-500`} />;
+          if (c.includes('mat') || c.includes('servering')) return <IconSvg name="utensils" className={`${baseClass} text-yellow-600`} />;
+          return <IconSvg name="info" className={`${baseClass} text-gray-500`} />;
         };
 
         return (
@@ -132,7 +193,11 @@
                 </div>
                 <h3 className="font-semibold text-gray-800 text-sm sm:text-base pr-2">{item.question}</h3>
               </div>
-              {isOpen ? <ChevronUp className="text-gray-400 w-5 h-5 flex-shrink-0" /> : <ChevronDown className="text-gray-400 w-5 h-5 flex-shrink-0" />}
+              {/* Bruker IconSvg for piler også */}
+              {isOpen 
+                ? <IconSvg name="chevron-up" className="text-gray-400 w-5 h-5 flex-shrink-0" /> 
+                : <IconSvg name="chevron-down" className="text-gray-400 w-5 h-5 flex-shrink-0" />
+              }
             </div>
             
             {isOpen && (
@@ -173,15 +238,19 @@
         }, []);
 
         // Hent ut unike kategorier fra dataen
-        const categories = ['Alle', ...new Set(data.map(item => item.category))];
+        // Filter ut tomme kategorier i tilfelle CSV-parsing returnerer null/tomme strenger
+        const categories = ['Alle', ...new Set(data.map(item => item.category).filter(c => c && c.trim()))];
 
         // Filtrer data basert på søk og kategori
         const filteredData = React.useMemo(() => {
           return data.filter(item => {
-            const matchesSearch = 
-              (item.question?.toLowerCase() || '').includes(searchTerm.toLowerCase()) || 
-              (item.answer?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-              (item.keywords?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+            const searchTerms = searchTerm.toLowerCase().split(/\s+/).filter(t => t.length > 0);
+            
+            const matchesSearch = searchTerms.length === 0 || searchTerms.every(term => 
+              (item.question?.toLowerCase() || '').includes(term) || 
+              (item.answer?.toLowerCase() || '').includes(term) ||
+              (item.keywords?.toLowerCase() || '').includes(term)
+            );
             
             const matchesCategory = selectedCategory === 'Alle' || item.category === selectedCategory;
 
@@ -195,12 +264,13 @@
             {/* Header */}
             <div className="bg-indigo-900 text-white pt-8 pb-12 px-6 rounded-b-[2.5rem] shadow-lg relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-10 transform rotate-12">
-                <Music size={120} />
+                {/* Bruker IconSvg for musikk-ikonet i bakgrunnen */}
+                <IconSvg name="music" className="w-32 h-32" />
               </div>
               
               <div className="max-w-md mx-auto relative z-10 text-center">
                 <div className="inline-flex items-center justify-center p-3 bg-white/10 rounded-full mb-4 backdrop-blur-sm border border-white/20">
-                  <Music className="text-yellow-400 w-8 h-8" />
+                  <IconSvg name="music" className="text-yellow-400 w-8 h-8" />
                 </div>
                 <h1 className="text-3xl font-bold mb-2 tracking-tight">Korpstur 2024</h1>
                 <p className="text-indigo-200 text-sm">Alt du lurer på, samlet på ett sted.</p>
@@ -218,14 +288,14 @@
               
               {error && (
                 <div className="bg-red-50 text-red-800 p-3 rounded-xl mb-4 text-sm flex items-center gap-2 border border-red-100">
-                  <AlertCircle size={16} />
+                  <IconSvg name="alert-circle" className="w-4 h-4" />
                   {error}
                 </div>
               )}
 
               {/* Søkefelt */}
               <div className="bg-white p-2 rounded-2xl shadow-lg border border-gray-100 flex items-center mb-6">
-                <Search className="text-gray-400 ml-3 w-5 h-5" />
+                <IconSvg name="search" className="text-gray-400 ml-3 w-5 h-5" />
                 <input 
                   type="text"
                   placeholder="Søk etter buss, uniform, mat..."
@@ -278,9 +348,17 @@
       }
 
       // Render appen til HTML-siden
-      const container = document.getElementById('root');
-      const root = ReactDOM.createRoot(container);
-      root.render(<App />);
+      // VIKTIG: Pakk renderingen inn i window.onload for å sikre at alle CDN-ressurser (Lucide, React, Babel)
+      // er ferdig lastet før koden prøver å bruke dem.
+      window.onload = function() {
+          const container = document.getElementById('root');
+          if (container) {
+              const root = ReactDOM.createRoot(container);
+              root.render(<App />);
+          } else {
+              console.error("Root element '#root' not found.");
+          }
+      };
 
     </script>
 </body>
